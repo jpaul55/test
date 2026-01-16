@@ -3008,7 +3008,7 @@ const emailTemplate = React.useMemo(() => {
                     width="100%"
                   />
                 </div>
-                <div style={{ flex: 1 }}>
+                <div style={{ flex: 1, position: 'relative' }}>
                   <TextInput
                     placeholder="Enter Program ID"
                     value={field.programId}
@@ -3032,7 +3032,15 @@ const emailTemplate = React.useMemo(() => {
                     style={programIdErrors[field.tempId] ? { borderColor: '#dc3545' } : {}}
                   />
                   {programIdErrors[field.tempId] && (
-                    <div style={{ color: '#dc3545', fontSize: '12px', marginTop: '4px' }}>
+                    <div style={{ 
+                      color: '#dc3545', 
+                      fontSize: '12px', 
+                      position: 'absolute',
+                      top: '100%',
+                      left: 0,
+                      marginTop: '4px',
+                      whiteSpace: 'nowrap'
+                    }}>
                       {programIdErrors[field.tempId]}
                     </div>
                   )}
