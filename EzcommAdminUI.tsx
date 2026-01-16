@@ -476,17 +476,17 @@ const handleSave = async () => {
         // Build the list of items to save
         const itemsToSave = [];
 
-        // 1. Add all existing items (with any updates to description, oauthClientId, senderName, senderEmail)
+        // 1. Add all existing items (with any updates to description, clientId, senderName, senderEmail)
         programItems.forEach(item => {
           itemsToSave.push({
-            settingId: item.settingId,
+            settingId: item.smsManagerSettingId,
             programId: item.programId,
-            programIdDescription: item.programIdDescription || item.programDescription || '',
-            oauthClientId: item.oauthClientId || '',
+            programIdDescription: item.programDescription || '',
+            oauthClientId: item.clientId || '',
             senderName: item.senderName || '',
             senderEmail: item.senderEmail || '',
-            epmpProgramFlag: item.epmpProgramFlag || 'N',
-            epmpCategory: item.epmpCategory || '',
+            epmpProgramFlag: 'N',
+            epmpCategory: '',
           });
         });
 
@@ -496,8 +496,8 @@ const handleSave = async () => {
           itemsToSave.push({
             settingId: null, // null for new items
             programId: newItem.programId.trim(),
-            programIdDescription: newItem.programIdDescription?.trim() || '',
-            oauthClientId: newItem.oauthClientId?.trim() || '',
+            programIdDescription: newItem.programDescription?.trim() || '',
+            oauthClientId: newItem.clientId?.trim() || '',
             senderName: newItem.senderName?.trim() || '',
             senderEmail: newItem.senderEmail?.trim() || '',
             epmpProgramFlag: 'N',
@@ -519,7 +519,7 @@ const handleSave = async () => {
         setProgramItems(refreshResponse.data);
 
         // Reset new fields
-        setNewProgramFields([{ tempId: '1', programId: '', programIdDescription: '', oauthClientId: '', senderName: '', senderEmail: '' }]);
+        setNewProgramFields([{ tempId: '1', programId: '', programDescription: '', clientId: '', senderName: '', senderEmail: '' }]);
 
         // Show success modal instead of alert
         const newItemsCount = filledNewPrograms.length;
@@ -2627,7 +2627,7 @@ const emailTemplate = React.useMemo(() => {
     onClose={() => {
       console.log('Program modal X button clicked, closing and clearing dropdown');
       // Reset new fields
-      setNewProgramFields([{ tempId: '1', programId: '', programIdDescription: '', oauthClientId: '', senderName: '', senderEmail: '' }]);
+      setNewProgramFields([{ tempId: '1', programId: '', programDescription: '', clientId: '', senderName: '', senderEmail: '' }]);
       // Close modal
       setShowProgramModal(false);
     }}
@@ -2718,7 +2718,7 @@ const emailTemplate = React.useMemo(() => {
             </p>
           ) : (
             programItems.map((item) => (
-              <div key={item.settingId} style={{
+              <div key={item.smsManagerSettingId} style={{
                 display: 'flex',
                 gap: '15px',
                 alignItems: 'center',
@@ -2728,11 +2728,11 @@ const emailTemplate = React.useMemo(() => {
               }}>
                 <div style={{ flex: 1 }}>
                   <TextInput
-                    value={item.programIdDescription || ''}
+                    value={item.programDescription || ''}
                     onChange={(e) => {
                       setProgramItems(programItems.map(prog =>
-                        prog.settingId === item.settingId
-                          ? { ...prog, programIdDescription: e.target.value }
+                        prog.smsManagerSettingId === item.smsManagerSettingId
+                          ? { ...prog, programDescription: e.target.value }
                           : prog
                       ));
                     }}
@@ -2750,11 +2750,11 @@ const emailTemplate = React.useMemo(() => {
                 </div>
                 <div style={{ flex: 1 }}>
                   <TextInput
-                    value={item.oauthClientId || ''}
+                    value={item.clientId || ''}
                     onChange={(e) => {
                       setProgramItems(programItems.map(prog =>
-                        prog.settingId === item.settingId
-                          ? { ...prog, oauthClientId: e.target.value }
+                        prog.smsManagerSettingId === item.smsManagerSettingId
+                          ? { ...prog, clientId: e.target.value }
                           : prog
                       ));
                     }}
@@ -2767,7 +2767,7 @@ const emailTemplate = React.useMemo(() => {
                     value={item.senderName || ''}
                     onChange={(e) => {
                       setProgramItems(programItems.map(prog =>
-                        prog.settingId === item.settingId
+                        prog.smsManagerSettingId === item.smsManagerSettingId
                           ? { ...prog, senderName: e.target.value }
                           : prog
                       ));
@@ -2781,7 +2781,7 @@ const emailTemplate = React.useMemo(() => {
                     value={item.senderEmail || ''}
                     onChange={(e) => {
                       setProgramItems(programItems.map(prog =>
-                        prog.settingId === item.settingId
+                        prog.smsManagerSettingId === item.smsManagerSettingId
                           ? { ...prog, senderEmail: e.target.value }
                           : prog
                       ));
@@ -2795,25 +2795,25 @@ const emailTemplate = React.useMemo(() => {
                     variant="ghost"
                     onClick={async () => {
                       try {
-                        console.log('Attempting to delete Program ID:', item.settingId);
-                        console.log('Program Description:', item.programIdDescription);
+                        console.log('Attempting to delete Program ID:', item.smsManagerSettingId);
+                        console.log('Program Description:', item.programDescription);
                         console.log('Program ID:', item.programId);
 
                         // Call backend to delete the Program ID
-                        const response = await axios.delete(`/admin/program-ids/${item.settingId}`);
+                        const response = await axios.delete(`/admin/program-ids/${item.smsManagerSettingId}`);
                         console.log('Delete response:', response.data);
 
                         if (response.data.success) {
                           console.log('Delete was successful, proceeding with data refresh...');
 
                           // Store deleted Program ID description for modal FIRST
-                          const deletedDesc = item.programIdDescription || item.programId || 'Program ID';
+                          const deletedDesc = item.programDescription || item.programId || 'Program ID';
                           console.log('Setting deleted description to:', deletedDesc);
                           setDeletedProgramDescription(deletedDesc);
 
                           // Remove from local state
                           console.log('Removing from programItems array...');
-                          setProgramItems(programItems.filter(prog => prog.settingId !== item.settingId));
+                          setProgramItems(programItems.filter(prog => prog.smsManagerSettingId !== item.smsManagerSettingId));
 
                           // Refresh programs dropdown in main form - wait for completion
                           console.log('Refreshing programs dropdown...');
@@ -2894,11 +2894,11 @@ const emailTemplate = React.useMemo(() => {
                 <div style={{ flex: 1 }}>
                   <TextInput
                     placeholder="Enter Program ID Description"
-                    value={field.programIdDescription || ''}
+                    value={field.programDescription || ''}
                     onChange={(e) => {
                       const updated = newProgramFields.map(f =>
                         f.tempId === field.tempId
-                          ? { ...f, programIdDescription: e.target.value }
+                          ? { ...f, programDescription: e.target.value }
                           : f
                       );
                       setNewProgramFields(updated);
@@ -2924,11 +2924,11 @@ const emailTemplate = React.useMemo(() => {
                 <div style={{ flex: 1 }}>
                   <TextInput
                     placeholder="Enter OAuth Client ID"
-                    value={field.oauthClientId}
+                    value={field.clientId || ''}
                     onChange={(e) => {
                       const updated = newProgramFields.map(f =>
                         f.tempId === field.tempId
-                          ? { ...f, oauthClientId: e.target.value }
+                          ? { ...f, clientId: e.target.value }
                           : f
                       );
                       setNewProgramFields(updated);
@@ -2994,7 +2994,7 @@ const emailTemplate = React.useMemo(() => {
               variant="ghost"
               onClick={() => {
                 const newId = Date.now().toString();
-                setNewProgramFields([...newProgramFields, { tempId: newId, programId: '', programIdDescription: '', oauthClientId: '', senderName: '', senderEmail: '' }]);
+                setNewProgramFields([...newProgramFields, { tempId: newId, programId: '', programDescription: '', clientId: '', senderName: '', senderEmail: '' }]);
               }}
               style={{
                 padding: '10px 16px',
@@ -3045,7 +3045,7 @@ const emailTemplate = React.useMemo(() => {
             fontWeight: '500',
           }}
           onClick={() => {
-            setNewProgramFields([{ tempId: '1', programId: '', programIdDescription: '', oauthClientId: '', senderName: '', senderEmail: '' }]);
+            setNewProgramFields([{ tempId: '1', programId: '', programDescription: '', clientId: '', senderName: '', senderEmail: '' }]);
             setShowProgramModal(false);
           }}
         >
